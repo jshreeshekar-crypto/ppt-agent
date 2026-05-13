@@ -7,10 +7,10 @@ st.title("📊 AI PPT Generator")
 st.caption("Describe the presentation you need and download the PPT instantly.")
 
 # ✅ Check BOTH Streamlit secrets AND .env
-api_key = st.secrets.get("OPENAI_API_KEY") if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
+api_key = st.secrets.get("GOOGLE_API_KEY") if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
 
 if not api_key:
-    st.error("❌ OPENAI_API_KEY not found! Add it in Streamlit Secrets.")
+    st.error("❌ GOOGLE_API_KEY not found! Add it in Streamlit Secrets.")
     st.stop()
 
 # --- Initialize session state ---
