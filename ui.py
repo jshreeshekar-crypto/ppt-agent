@@ -6,14 +6,15 @@ st.set_page_config(page_title="PPT Agent", page_icon="📊", layout="centered")
 st.title("📊 AI PPT Generator")
 st.caption("Describe the presentation you need and download the PPT instantly.")
 
-# ✅ Check BOTH Streamlit secrets AND .env
-api_key = st.secrets.get("GOOGLE_API_KEY") if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except Exception:
+    api_key = os.getenv("GOOGLE_API_KEY")
 
 if not api_key:
     st.error("❌ GOOGLE_API_KEY not found! Add it in Streamlit Secrets.")
     st.stop()
 
-# --- Initialize session state ---
 if "extracted" not in st.session_state:
     st.session_state.extracted = None
 if "template_path" not in st.session_state:
@@ -21,7 +22,6 @@ if "template_path" not in st.session_state:
 if "template_name" not in st.session_state:
     st.session_state.template_name = None
 
-# --- User Input ---
 user_input = st.text_area(
     "What presentation do you need?",
     placeholder="e.g. Create a sprint review for Q2, focus on velocity improvements...",
@@ -33,7 +33,6 @@ if st.button("🤖 Analyze Request"):
         st.warning("Please enter a request.")
     else:
         template_path, template_name = get_template(user_input)
-
         if template_path:
             with st.spinner("🧠 Understanding your request..."):
                 try:
@@ -41,15 +40,13 @@ if st.button("🤖 Analyze Request"):
                     st.session_state.template_path = template_path
                     st.session_state.template_name = template_name
                 except Exception as e:
-                    st.error(f"❌ LLM extraction failed: {e}")
+                    st.error(f"❌ {e}")
         else:
             st.error("❌ No matching template found.")
             st.info("**Available templates:**\n" + "\n".join([f"- `{k}`" for k in TEMPLATES.keys()]))
 
-# --- Show Extracted Content ---
 if st.session_state.extracted:
     st.subheader("📋 Extracted Content — Review & Edit")
-
     col1, col2 = st.columns(2)
     with col1:
         title     = st.text_input("Title",     value=st.session_state.extracted.get("title", ""))
@@ -69,12 +66,11 @@ if st.session_state.extracted:
             "{{TEAM}}":      team,
             "{{DATE}}":      date,
         }
-
         with st.spinner("📊 Building your presentation..."):
             try:
                 output = generate_ppt(st.session_state.template_path, data)
             except Exception as e:
-                st.error(f"❌ PPT generation failed: {e}")
+                st.error(f"❌ {e}")
                 st.stop()
 
         st.success("✅ PPT Ready!")

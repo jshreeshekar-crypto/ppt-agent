@@ -8,13 +8,15 @@ import streamlit as st
 
 load_dotenv()
 
-api_key = st.secrets.get("GOOGLE_API_KEY") if "GOOGLE_API_KEY" in st.secrets else os.getenv("GOOGLE_API_KEY")
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except Exception:
+    api_key = os.getenv("GOOGLE_API_KEY")
 
-if not api_key:
-    raise ValueError("GOOGLE_API_KEY not found")
-
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = None
+if api_key:
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-1.5-flash")
 
 TEMPLATES = {
     "pi planning": "templates/pi_planning.pptx",
@@ -38,6 +40,9 @@ def clean_json_response(raw_text):
     return raw_text.strip()
 
 def extract_content_with_llm(user_input, template_name):
+    if not model:
+        raise Exception("GOOGLE_API_KEY not configured. Add it in Streamlit Secrets.")
+
     prompt = f"""
 You are an enterprise Agile Release Train presentation assistant.
 
